@@ -2,22 +2,27 @@
 let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 let editingId = null;
 
-// Mock exchange rates (in production, you would fetch from an API)
-const exchangeRates = {
-    USD: 1,
-    EUR: 0.85,
-    GBP: 0.73,
-    JPY: 110.25,
-    CAD: 1.25,
-    AUD: 1.35,
-    CNY: 6.45
-};
+// Fetch exchange rates from Frankfurter API
+const exchangeRates = {};
+
+async function fetchExchangeRates() {
+    try {
+        const response = await fetch('https://api.frankfurter.app/latest');
+        const data = await response.json();
+        Object.assign(exchangeRates, data.rates, { [data.base]: 1 });
+    } catch (error) {
+        console.error('Error fetching exchange rates:', error);
+    }
+}
+
+fetchExchangeRates();
 
 // Convert amount between currencies
 function convertAmount(amount, from, to) {
     if (from === to) return amount;
-    const toUSD = amount / exchangeRates[from];
-    return toUSD * exchangeRates[to];
+    if (!exchangeRates[from] || !exchangeRates[to]) return amount;
+    const toEUR = amount / exchangeRates[from];
+    return toEUR * exchangeRates[to];
 }
 
 // Format currency
@@ -70,12 +75,8 @@ function renderExpenses() {
                     ''}
             </td>
             <td>
-                <button onclick="editExpense('${expense.id}')" class="action-btn edit-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                </button>
-                <button onclick="deleteExpense('${expense.id}')" class="action-btn delete-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
+                <button onclick="editExpense('${expense.id}')" class="action-btn edit-btn">✏️</button>
+                <button onclick="deleteExpense('${expense.id}')" class="action-btn delete-btn">🗑️</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -94,28 +95,20 @@ document.getElementById('expenseForm').addEventListener('submit', (e) => {
     if (editingId) {
         expenses = expenses.map(expense => 
             expense.id === editingId 
-                ? {
-                    ...expense,
-                    amount,
-                    currency,
-                    category,
-                    description,
-                    date: new Date().toISOString()
-                  }
+                ? { ...expense, amount, currency, category, description, date: new Date().toISOString() }
                 : expense
         );
         editingId = null;
         document.querySelector('.submit-btn').textContent = 'Add Expense';
     } else {
-        const newExpense = {
+        expenses.push({
             id: Date.now().toString(),
             amount,
             currency,
             category,
             description,
             date: new Date().toISOString()
-        };
-        expenses.push(newExpense);
+        });
     }
 
     saveExpenses();
