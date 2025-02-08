@@ -1,0 +1,12 @@
+{
+  "name": "budget-tracker",
+  "version": "1.0.0",
+  "description": "Budget and Expense Tracker with Currency Converter",
+  "main": "index.js",
+  "scripts": {
+    "dev": "http-server -c-1"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
