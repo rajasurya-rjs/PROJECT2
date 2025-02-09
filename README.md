@@ -25,7 +25,7 @@ Budget Tracker is a simple web-based application that helps users track their ex
 ## Live Demo
 
 The Budget Tracker is deployed on **Vercel** and can be accessed here:  
-🔗 **[Budget Tracker Live](https://expensetrackerproject2.vercel.app/)**  
+🔗 **[Budget Tracker Live](https://budgettracker2.vercel.app/)**  
 
 ## API Usage
 
